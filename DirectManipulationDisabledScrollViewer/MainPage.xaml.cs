@@ -37,7 +37,7 @@ namespace DirectManipulationDisabledScrollViewer
         private bool isRefreshEnabled = true;
         private bool isRefreshing;
         private bool ignoreInertia;
-        private double threshold = 80.0;
+        private double threshold = 60.0;
 
         private double x;
         private double y;
@@ -49,21 +49,25 @@ namespace DirectManipulationDisabledScrollViewer
             var sv = FindSV((DependencyObject)sender);
             var overhangX = x - e.Cumulative.Translation.X;
             var overhangY = y - e.Cumulative.Translation.Y;
+            var refreshingOffset = isRefreshing ? 50 : 0;
             sv.ChangeView(x - e.Cumulative.Translation.X, y - e.Cumulative.Translation.Y, null);
             var tr = ((FrameworkElement)sender).RenderTransform as TranslateTransform;
             if (sv.ComputedHorizontalScrollBarVisibility == Visibility.Collapsed) { }
             else if (overhangX < 0) { tr.X = (-overhangX) / 4; }
             else if (overhangX > sv.ScrollableWidth) { tr.X = (sv.ScrollableWidth - overhangX) / 4; }
             else { tr.X = 0; }
-            if (sv.ComputedVerticalScrollBarVisibility == Visibility.Collapsed) { }
-            else if (overhangY < 0) { tr.Y = (-overhangY) / 4; }
+            if (sv.ComputedVerticalScrollBarVisibility == Visibility.Collapsed) { }　
+            else if (overhangY < 0) { tr.Y = refreshingOffset + (-overhangY) / 4; }
             else if (overhangY > sv.ScrollableHeight) { tr.Y = (sv.ScrollableHeight - overhangY) / 4; }
-            else { tr.Y = 0; }
+            else if (!isRefreshing) { tr.Y = 0; }
             var border = (Border)((Panel)((FrameworkElement)sender).Parent).FindName("RefreshBorder");
-            ((TranslateTransform)border.RenderTransform).Y = -50 + tr.Y;
-            ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
-            ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
-            if ((Math.Abs(tr.X) > 0 || Math.Abs(tr.Y) > 0) && e.IsInertial)
+            if (!isRefreshing)
+            {
+                ((TranslateTransform)border.RenderTransform).Y = -50 + tr.Y;
+                ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
+                ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
+            }
+            if ((Math.Abs(tr.X) > 0 || tr.Y > refreshingOffset || tr.Y < 0) && e.IsInertial)
             {
                 if (inertiaStarted == 0)
                 {
@@ -158,7 +162,7 @@ namespace DirectManipulationDisabledScrollViewer
 
         private async Task FireRefresh(object sender)
         {
-            await Task.Delay(1000);
+            await Task.Delay(3000);
             CompleteRefresh(sender);
         }
 
