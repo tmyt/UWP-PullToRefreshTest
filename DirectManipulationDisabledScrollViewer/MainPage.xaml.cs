@@ -52,11 +52,11 @@ namespace DirectManipulationDisabledScrollViewer
             var refreshingOffset = isRefreshing ? 50 : 0;
             sv.ChangeView(x - e.Cumulative.Translation.X, y - e.Cumulative.Translation.Y, null);
             var tr = ((FrameworkElement)sender).RenderTransform as TranslateTransform;
-            if (sv.ComputedHorizontalScrollBarVisibility == Visibility.Collapsed) { }
+            if (sv.HorizontalScrollMode == ScrollMode.Disabled) { }
             else if (overhangX < 0) { tr.X = (-overhangX) / 4; }
             else if (overhangX > sv.ScrollableWidth) { tr.X = (sv.ScrollableWidth - overhangX) / 4; }
             else { tr.X = 0; }
-            if (sv.ComputedVerticalScrollBarVisibility == Visibility.Collapsed) { }　
+            if (sv.VerticalScrollMode == ScrollMode.Disabled) { }　
             else if (overhangY < 0) { tr.Y = refreshingOffset + (-overhangY) / 4; }
             else if (overhangY > sv.ScrollableHeight) { tr.Y = (sv.ScrollableHeight - overhangY) / 4; }
             else if (!isRefreshing) { tr.Y = 0; }
