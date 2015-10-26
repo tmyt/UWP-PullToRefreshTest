@@ -94,7 +94,7 @@ namespace DirectManipulationDisabledScrollViewer
                     inertiaStarted = DateTime.UtcNow.Ticks;
                 }
                 // 慣性スクロールで境界エフェクトを300ms以上表示した場合Manipulationを終了
-                if ((DateTime.UtcNow.Ticks - inertiaStarted) > 3000) // 300ms
+                if ((DateTime.UtcNow.Ticks - inertiaStarted) > 1000000) // 100ms
                 {
                     e.Complete();
                 }
