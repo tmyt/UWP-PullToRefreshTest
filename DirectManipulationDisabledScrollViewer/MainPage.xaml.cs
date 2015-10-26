@@ -61,7 +61,8 @@ namespace DirectManipulationDisabledScrollViewer
             else { tr.Y = 0; }
             var border = (Border)((Panel)((FrameworkElement)sender).Parent).FindName("RefreshBorder");
             ((TranslateTransform)border.RenderTransform).Y = -50 + tr.Y;
-            ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
+            ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
+            ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
             if ((Math.Abs(tr.X) > 0 || Math.Abs(tr.Y) > 0) && e.IsInertial)
             {
                 if (inertiaStarted == 0)
@@ -147,6 +148,12 @@ namespace DirectManipulationDisabledScrollViewer
             sb.Children.Add(yanim);
             sb.Children.Add(bdranim);
             sb.Begin();
+
+            if (isRefreshing)
+            {
+                ((TextBlock)((StackPanel)border.Child).Children[0]).Text = "\uE149";
+                ((TextBlock)((StackPanel)border.Child).Children[1]).Text = "Refreshing...";
+            }
         }
 
         private async Task FireRefresh(object sender)
@@ -193,7 +200,8 @@ namespace DirectManipulationDisabledScrollViewer
             sb.Children.Add(yanim);
             sb.Children.Add(bdranim);
             sb.Begin();
-            ((TextBlock)((StackPanel)border.Child).Children[0]).Text = "Pull to Refresh";
+            ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
+            ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
         }
     }
 }

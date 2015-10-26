@@ -124,9 +124,9 @@
                                     <Border.RenderTransform>
                                         <TranslateTransform Y="-50"></TranslateTransform>
                                     </Border.RenderTransform>
-                                    <StackPanel VerticalAlignment="Center">
-                                        
-                                        <TextBlock Text="Pull to Refresh" HorizontalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock FontFamily="{ThemeResource SymbolThemeFontFamily}" Text="&#xE74B;" Margin="5"/>
+                                        <TextBlock Text="Pull to Refresh" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
                                 <ScrollContentPresenter x:Name="ScrollContentPresenter" Grid.ColumnSpan="2" ContentTemplate="{TemplateBinding ContentTemplate}" Margin="{TemplateBinding Padding}" Grid.RowSpan="2" 
