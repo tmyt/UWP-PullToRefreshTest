@@ -41,8 +41,7 @@ namespace DirectManipulationDisabledScrollViewer
 
         private double x;
         private double y;
-        private double ix = 0;
-        private double iy = 0;
+        private long inertiaStarted;
 
         private void ScrollViewer_OnManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
         {
@@ -54,15 +53,26 @@ namespace DirectManipulationDisabledScrollViewer
             var tr = ((FrameworkElement)sender).RenderTransform as TranslateTransform;
             if (sv.ComputedHorizontalScrollBarVisibility == Visibility.Collapsed) { }
             else if (overhangX < 0) { tr.X = (-overhangX) / 4; }
-            else if (overhangX > sv.ExtentWidth) { tr.X = (sv.ExtentWidth - overhangX) / 4; }
+            else if (overhangX > sv.ScrollableWidth) { tr.X = (sv.ScrollableWidth - overhangX) / 4; }
             else { tr.X = 0; }
             if (sv.ComputedVerticalScrollBarVisibility == Visibility.Collapsed) { }
-            else if (overhangY < 0) { tr.Y = Math.Sqrt(-overhangY) * 4; }
-            else if (overhangY > sv.ExtentHeight) { tr.Y = (sv.ExtentHeight - overhangY) / 4; }
+            else if (overhangY < 0) { tr.Y = (-overhangY) / 4; }
+            else if (overhangY > sv.ScrollableHeight) { tr.Y = (sv.ScrollableHeight - overhangY) / 4; }
             else { tr.Y = 0; }
             var border = (Border)((Panel)((FrameworkElement)sender).Parent).FindName("RefreshBorder");
             ((TranslateTransform)border.RenderTransform).Y = -50 + tr.Y;
             ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
+            if ((Math.Abs(tr.X) > 0 || Math.Abs(tr.Y) > 0) && e.IsInertial)
+            {
+                if (inertiaStarted == 0)
+                {
+                    inertiaStarted = DateTime.UtcNow.Ticks;
+                }
+                if ((DateTime.UtcNow.Ticks - inertiaStarted) > 3000) // 300ms
+                {
+                    e.Complete();
+                }
+            }
         }
 
         ScrollViewer FindSV(DependencyObject d)
@@ -104,6 +114,7 @@ namespace DirectManipulationDisabledScrollViewer
                 }
             }
             ignoreInertia = false;
+            inertiaStarted = 0;
             var sb = new Storyboard();
             var xanim = new DoubleAnimation
             {
@@ -124,7 +135,7 @@ namespace DirectManipulationDisabledScrollViewer
                 From = btr.Y,
                 To = isRefreshing ? 0 : -50,
                 Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase {EasingMode = EasingMode.EaseOut}
+                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
             Storyboard.SetTarget(xanim, (DependencyObject)sender);
             Storyboard.SetTargetProperty(xanim, "(UIElement.RenderTransform).(TranslateTransform.X)");
