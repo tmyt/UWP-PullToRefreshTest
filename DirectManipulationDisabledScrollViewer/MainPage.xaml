@@ -111,7 +111,10 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <Grid Background="{TemplateBinding Background}">
+                            <Grid Background="{TemplateBinding Background}" SizeChanged="FrameworkElement_OnSizeChanged">
+                                <Grid.Clip>
+                                    <RectangleGeometry />
+                                </Grid.Clip>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>

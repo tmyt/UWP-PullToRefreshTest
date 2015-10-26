@@ -234,5 +234,10 @@ namespace DirectManipulationDisabledScrollViewer
             ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
             ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
         }
+
+        private void FrameworkElement_OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ((RectangleGeometry)((Grid)sender).Clip).Rect = new Rect(0, 0, e.NewSize.Width, e.NewSize.Height);
+        }
     }
 }
