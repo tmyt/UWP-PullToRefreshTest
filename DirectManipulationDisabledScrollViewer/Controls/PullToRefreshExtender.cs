@@ -133,7 +133,6 @@ namespace DirectManipulationDisabledScrollViewer.Controls
         private void ScrollContentPresenter_OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             var tr = _presenter.RenderTransform as TranslateTransform;
-            var btr = _indicator.RenderTransform as TranslateTransform;
             // check refresh
             if (IsRefreshEnabled && !_isRefreshing && !_inertiaIgnoring)
             {
@@ -146,38 +145,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             _inertiaIgnoring = false;
             _inertiaStarted = 0;
             // それなりにアニメーションさせる
-            var sb = new Storyboard();
-            var xanim = new DoubleAnimation
-            {
-                From = tr.X,
-                To = 0,
-                Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
-            };
-            var yanim = new DoubleAnimation
-            {
-                From = tr.Y,
-                To = _isRefreshing ? IndicatorHeight : 0,
-                Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
-            };
-            var bdranim = new DoubleAnimation
-            {
-                From = btr.Y,
-                To = _isRefreshing ? 0 : -IndicatorHeight,
-                Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
-            };
-            Storyboard.SetTarget(xanim, (DependencyObject)sender);
-            Storyboard.SetTargetProperty(xanim, "(UIElement.RenderTransform).(TranslateTransform.X)");
-            Storyboard.SetTarget(yanim, (DependencyObject)sender);
-            Storyboard.SetTargetProperty(yanim, "(UIElement.RenderTransform).(TranslateTransform.Y)");
-            Storyboard.SetTarget(bdranim, _indicator);
-            Storyboard.SetTargetProperty(bdranim, "(UIElement.RenderTransform).(TranslateTransform.Y)");
-            sb.Children.Add(xanim);
-            sb.Children.Add(yanim);
-            sb.Children.Add(bdranim);
-            sb.Begin();
+            BeginReleaseAnimation(sender);
 
             // メッセージを更新
             if (_isRefreshing)
@@ -191,33 +159,31 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             _container.Clip.Rect = new Rect(0, 0, e.NewSize.Width, e.NewSize.Height);
         }
 
-        private void CompleteRefresh(object sender)
+        private void BeginReleaseAnimation(object sender)
         {
-            _isRefreshing = false;
-            // それなりなアニメーションを実行する
             var tr = _presenter.RenderTransform as TranslateTransform;
             var btr = _indicator.RenderTransform as TranslateTransform;
             var sb = new Storyboard();
             var xanim = new DoubleAnimation
             {
                 From = tr.X,
-                To = _isRefreshing ? IndicatorHeight : 0,
+                To = 0,
                 Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new CircleEase {EasingMode = EasingMode.EaseOut}
             };
             var yanim = new DoubleAnimation
             {
                 From = tr.Y,
-                To = 0,
+                To = _isRefreshing ? IndicatorHeight : 0,
                 Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new CircleEase {EasingMode = EasingMode.EaseOut}
             };
             var bdranim = new DoubleAnimation
             {
                 From = btr.Y,
-                To = -IndicatorHeight,
+                To = _isRefreshing ? 0 : -IndicatorHeight,
                 Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new CircleEase {EasingMode = EasingMode.EaseOut}
             };
             Storyboard.SetTarget(xanim, (DependencyObject)sender);
             Storyboard.SetTargetProperty(xanim, "(UIElement.RenderTransform).(TranslateTransform.X)");
@@ -229,6 +195,13 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             sb.Children.Add(yanim);
             sb.Children.Add(bdranim);
             sb.Begin();
+        }
+
+        private void CompleteRefresh(object sender)
+        {
+            _isRefreshing = false;
+            // それなりなアニメーションを実行する
+            BeginReleaseAnimation(sender);
             // メッセージを更新
             _indicator.EndRefresh();
         }
