@@ -45,14 +45,13 @@ namespace DirectManipulationDisabledScrollViewer.Controls
         private PullToRefreshIndicator _indicator;
 
         // 更新処理中？
-        private bool isRefreshing;
+        private bool _isRefreshing;
         // 慣性スクロールでの移動を無視する？
-        private bool ignoreInertia;
-
+        private bool _inertiaIgnoring;
         // Manipulationを開始したx, y 座標
         private double x, y;
         // 慣性スクロールで境界エフェクトを表示し始めた時刻
-        private long inertiaStarted;
+        private long _inertiaStarted;
 
         private void ListView_Loaded(object sender, RoutedEventArgs e)
         {
@@ -75,7 +74,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
         {
             var tr = _presenter.RenderTransform as TranslateTransform;
             // 閾値に達していない状態で慣性スクロールが始まった場合引っ張って更新の計算をスキップする
-            ignoreInertia = tr.Y < Threshold && !isRefreshing;
+            _inertiaIgnoring = tr.Y < Threshold && !_isRefreshing;
         }
 
         private void ScrollContentPresenter_OnManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
@@ -85,7 +84,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var overhangX = x - e.Cumulative.Translation.X;
             var overhangY = y - e.Cumulative.Translation.Y;
             // 更新中のヘッダオフセットを計算
-            var refreshingOffset = isRefreshing ? 50 : 0;
+            var refreshingOffset = _isRefreshing ? 50 : 0;
             // ScrollViewerを正しい位置へスクロール
             _scrollViewer.ChangeView(x - e.Cumulative.Translation.X, y - e.Cumulative.Translation.Y, null);
             // 境界エフェクトの計算をします。
@@ -105,9 +104,9 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             // 下端の処理
             else if (overhangY > _scrollViewer.ScrollableHeight) { tr.Y = (_scrollViewer.ScrollableHeight - overhangY) / 4; }
             // どちらでもなく、更新処理中でなければRenderTransformを初期化
-            else if (!isRefreshing) { tr.Y = 0; }
+            else if (!_isRefreshing) { tr.Y = 0; }
             // 引っ張って更新のインジケータを更新する
-            if (!isRefreshing)
+            if (!_isRefreshing)
             {
                 ((TranslateTransform)_indicator.RenderTransform).Y = -50 + tr.Y;
                 _indicator.Value = tr.Y / Threshold;
@@ -116,12 +115,12 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             if ((Math.Abs(tr.X) > 0 || tr.Y > refreshingOffset || tr.Y < 0) && e.IsInertial)
             {
                 // 初回は時刻を記録
-                if (inertiaStarted == 0)
+                if (_inertiaStarted == 0)
                 {
-                    inertiaStarted = DateTime.UtcNow.Ticks;
+                    _inertiaStarted = DateTime.UtcNow.Ticks;
                 }
                 // 慣性スクロールで境界エフェクトを300ms以上表示した場合Manipulationを終了
-                if ((DateTime.UtcNow.Ticks - inertiaStarted) > 1000000) // 100ms
+                if ((DateTime.UtcNow.Ticks - _inertiaStarted) > 1000000) // 100ms
                 {
                     e.Complete();
                 }
@@ -133,16 +132,16 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var tr = _presenter.RenderTransform as TranslateTransform;
             var btr = _indicator.RenderTransform as TranslateTransform;
             // check refresh
-            if (IsRefreshEnabled && !isRefreshing && !ignoreInertia)
+            if (IsRefreshEnabled && !_isRefreshing && !_inertiaIgnoring)
             {
                 if (tr.Y > Threshold)
                 {
-                    isRefreshing = true;
+                    _isRefreshing = true;
                     FireRefresh(sender);
                 }
             }
-            ignoreInertia = false;
-            inertiaStarted = 0;
+            _inertiaIgnoring = false;
+            _inertiaStarted = 0;
             // それなりにアニメーションさせる
             var sb = new Storyboard();
             var xanim = new DoubleAnimation
@@ -155,14 +154,14 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var yanim = new DoubleAnimation
             {
                 From = tr.Y,
-                To = isRefreshing ? 50 : 0,
+                To = _isRefreshing ? 50 : 0,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
             var bdranim = new DoubleAnimation
             {
                 From = btr.Y,
-                To = isRefreshing ? 0 : -50,
+                To = _isRefreshing ? 0 : -50,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
@@ -178,7 +177,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             sb.Begin();
 
             // メッセージを更新
-            if (isRefreshing)
+            if (_isRefreshing)
             {
                 _indicator.BeginRrefresh();
             }
@@ -191,7 +190,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
 
         private void CompleteRefresh(object sender)
         {
-            isRefreshing = false;
+            _isRefreshing = false;
             // それなりなアニメーションを実行する
             var tr = _presenter.RenderTransform as TranslateTransform;
             var btr = _indicator.RenderTransform as TranslateTransform;
@@ -199,7 +198,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var xanim = new DoubleAnimation
             {
                 From = tr.X,
-                To = isRefreshing ? 50 : 0,
+                To = _isRefreshing ? 50 : 0,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
