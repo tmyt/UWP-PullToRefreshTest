@@ -14,7 +14,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
     public class PullToRefreshExtender : DependencyObject
     {
         public static readonly DependencyProperty IsRefreshEnabledProperty = DependencyProperty.Register(
-            "IsRefreshEnabled", typeof(bool), typeof(PullToRefreshExtender), new PropertyMetadata(default(bool), OnIsRefreshEnabledChanged));
+            "IsRefreshEnabled", typeof(bool), typeof(PullToRefreshExtender), new PropertyMetadata(true, OnIsRefreshEnabledChanged));
 
         public bool IsRefreshEnabled
         {
@@ -22,16 +22,20 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             set { SetValue(IsRefreshEnabledProperty, value); }
         }
 
+        public static readonly DependencyProperty ThresholdProperty = DependencyProperty.Register(
+            "Threshold", typeof(double), typeof(PullToRefreshExtender), new PropertyMetadata(60.0));
+
+        public double Threshold
+        {
+            get { return (double)GetValue(ThresholdProperty); }
+            set { SetValue(ThresholdProperty, value); }
+        }
+
         private static void OnIsRefreshEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var i = (PullToRefreshExtender)d;
             if (i._indicator == null) return;
             i._indicator.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public PullToRefreshExtender()
-        {
-            IsRefreshEnabled = true;
         }
 
         // ターゲットScrollViewer
@@ -44,8 +48,6 @@ namespace DirectManipulationDisabledScrollViewer.Controls
         private bool isRefreshing;
         // 慣性スクロールでの移動を無視する？
         private bool ignoreInertia;
-        // 更新を実行する閾値
-        private double threshold = 60.0;
 
         // Manipulationを開始したx, y 座標
         private double x, y;
@@ -73,7 +75,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
         {
             var tr = _presenter.RenderTransform as TranslateTransform;
             // 閾値に達していない状態で慣性スクロールが始まった場合引っ張って更新の計算をスキップする
-            ignoreInertia = tr.Y < threshold && !isRefreshing;
+            ignoreInertia = tr.Y < Threshold && !isRefreshing;
         }
 
         private void ScrollContentPresenter_OnManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
@@ -108,7 +110,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             if (!isRefreshing)
             {
                 ((TranslateTransform)_indicator.RenderTransform).Y = -50 + tr.Y;
-                _indicator.Value = tr.Y / threshold;
+                _indicator.Value = tr.Y / Threshold;
             }
             // 慣性スクロール中で、境界エフェクトを表示すべき条件が整った
             if ((Math.Abs(tr.X) > 0 || tr.Y > refreshingOffset || tr.Y < 0) && e.IsInertial)
@@ -133,7 +135,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             // check refresh
             if (IsRefreshEnabled && !isRefreshing && !ignoreInertia)
             {
-                if (tr.Y > threshold)
+                if (tr.Y > Threshold)
                 {
                     isRefreshing = true;
                     FireRefresh(sender);
