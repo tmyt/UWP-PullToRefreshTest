@@ -38,6 +38,9 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             i._indicator.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        // 引っ張って更新エリアの高さ
+        private const double IndicatorHeight = 50;
+
         // ターゲットScrollViewer
         private Grid _container;
         private ScrollViewer _scrollViewer;
@@ -84,7 +87,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var overhangX = x - e.Cumulative.Translation.X;
             var overhangY = y - e.Cumulative.Translation.Y;
             // 更新中のヘッダオフセットを計算
-            var refreshingOffset = _isRefreshing ? 50 : 0;
+            var refreshingOffset = _isRefreshing ? IndicatorHeight : 0;
             // ScrollViewerを正しい位置へスクロール
             _scrollViewer.ChangeView(x - e.Cumulative.Translation.X, y - e.Cumulative.Translation.Y, null);
             // 境界エフェクトの計算をします。
@@ -108,7 +111,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             // 引っ張って更新のインジケータを更新する
             if (!_isRefreshing)
             {
-                ((TranslateTransform)_indicator.RenderTransform).Y = -50 + tr.Y;
+                ((TranslateTransform)_indicator.RenderTransform).Y = -IndicatorHeight + tr.Y;
                 _indicator.Value = tr.Y / Threshold;
             }
             // 慣性スクロール中で、境界エフェクトを表示すべき条件が整った
@@ -154,14 +157,14 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var yanim = new DoubleAnimation
             {
                 From = tr.Y,
-                To = _isRefreshing ? 50 : 0,
+                To = _isRefreshing ? IndicatorHeight : 0,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
             var bdranim = new DoubleAnimation
             {
                 From = btr.Y,
-                To = _isRefreshing ? 0 : -50,
+                To = _isRefreshing ? 0 : -IndicatorHeight,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
@@ -198,7 +201,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var xanim = new DoubleAnimation
             {
                 From = tr.X,
-                To = _isRefreshing ? 50 : 0,
+                To = _isRefreshing ? IndicatorHeight : 0,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
@@ -212,7 +215,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
             var bdranim = new DoubleAnimation
             {
                 From = btr.Y,
-                To = -50,
+                To = -IndicatorHeight,
                 Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
             };
@@ -246,9 +249,9 @@ namespace DirectManipulationDisabledScrollViewer.Controls
 
             // add indicator
             _indicator = new PullToRefreshIndicator();
-            _indicator.Height = 50;
+            _indicator.Height = IndicatorHeight;
             _indicator.VerticalAlignment = VerticalAlignment.Top;
-            _indicator.RenderTransform = new TranslateTransform { Y = -50 };
+            _indicator.RenderTransform = new TranslateTransform { Y = -IndicatorHeight };
             _indicator.Visibility = IsRefreshEnabled ? Visibility.Visible : Visibility.Collapsed;
             _container.Children.Insert(0, _indicator);
 
