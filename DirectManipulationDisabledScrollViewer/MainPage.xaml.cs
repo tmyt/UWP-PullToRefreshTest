@@ -17,6 +17,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
+using DirectManipulationDisabledScrollViewer.Controls;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -70,7 +71,7 @@ namespace DirectManipulationDisabledScrollViewer
             // どちらでもない場合はRenderTransformを初期化
             else { tr.X = 0; }
             // 水平スクロールと同じ感じ
-            if (sv.VerticalScrollMode == ScrollMode.Disabled) { }　
+            if (sv.VerticalScrollMode == ScrollMode.Disabled) { }
             // 更新中のヘッダオフセットを考慮して境界エフェクトを表示
             else if (overhangY < 0) { tr.Y = refreshingOffset + (-overhangY) / 4; }
             // 下端の処理
@@ -78,12 +79,11 @@ namespace DirectManipulationDisabledScrollViewer
             // どちらでもなく、更新処理中でなければRenderTransformを初期化
             else if (!isRefreshing) { tr.Y = 0; }
             // 引っ張って更新のインジケータを更新する
-            var border = (Border)((Panel)((FrameworkElement)sender).Parent).FindName("RefreshBorder");
+            var indicator = (PullToRefreshIndicator)((Panel)((FrameworkElement)sender).Parent).FindName("Indicator");
             if (!isRefreshing)
             {
-                ((TranslateTransform)border.RenderTransform).Y = -50 + tr.Y;
-                ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
-                ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
+                ((TranslateTransform)indicator.RenderTransform).Y = -50 + tr.Y;
+                indicator.Value = tr.Y / threshold;
             }
             // 慣性スクロール中で、境界エフェクトを表示すべき条件が整った
             if ((Math.Abs(tr.X) > 0 || tr.Y > refreshingOffset || tr.Y < 0) && e.IsInertial)
@@ -129,8 +129,8 @@ namespace DirectManipulationDisabledScrollViewer
         private void ScrollContentPresenter_OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             var tr = ((FrameworkElement)sender).RenderTransform as TranslateTransform;
-            var border = (Border)((Panel)((FrameworkElement)sender).Parent).FindName("RefreshBorder");
-            var btr = border.RenderTransform as TranslateTransform;
+            var indicator = (PullToRefreshIndicator)((Panel)((FrameworkElement)sender).Parent).FindName("Indicator");
+            var btr = indicator.RenderTransform as TranslateTransform;
             // check refresh
             if (isRefreshEnabled && !isRefreshing && !ignoreInertia)
             {
@@ -169,7 +169,7 @@ namespace DirectManipulationDisabledScrollViewer
             Storyboard.SetTargetProperty(xanim, "(UIElement.RenderTransform).(TranslateTransform.X)");
             Storyboard.SetTarget(yanim, (DependencyObject)sender);
             Storyboard.SetTargetProperty(yanim, "(UIElement.RenderTransform).(TranslateTransform.Y)");
-            Storyboard.SetTarget(bdranim, border);
+            Storyboard.SetTarget(bdranim, indicator);
             Storyboard.SetTargetProperty(bdranim, "(UIElement.RenderTransform).(TranslateTransform.Y)");
             sb.Children.Add(xanim);
             sb.Children.Add(yanim);
@@ -179,8 +179,7 @@ namespace DirectManipulationDisabledScrollViewer
             // メッセージを更新
             if (isRefreshing)
             {
-                ((TextBlock)((StackPanel)border.Child).Children[0]).Text = "\uE149";
-                ((TextBlock)((StackPanel)border.Child).Children[1]).Text = "Refreshing...";
+                indicator.BeginRrefresh();
             }
         }
 
@@ -196,8 +195,8 @@ namespace DirectManipulationDisabledScrollViewer
             isRefreshing = false;
             // それなりなアニメーションを実行する
             var tr = ((FrameworkElement)sender).RenderTransform as TranslateTransform;
-            var border = (Border)((Panel)((FrameworkElement)sender).Parent).FindName("RefreshBorder");
-            var btr = border.RenderTransform as TranslateTransform;
+            var indicator = (PullToRefreshIndicator)((Panel)((FrameworkElement)sender).Parent).FindName("Indicator");
+            var btr = indicator.RenderTransform as TranslateTransform;
             var sb = new Storyboard();
             var xanim = new DoubleAnimation
             {
@@ -224,15 +223,14 @@ namespace DirectManipulationDisabledScrollViewer
             Storyboard.SetTargetProperty(xanim, "(UIElement.RenderTransform).(TranslateTransform.X)");
             Storyboard.SetTarget(yanim, (DependencyObject)sender);
             Storyboard.SetTargetProperty(yanim, "(UIElement.RenderTransform).(TranslateTransform.Y)");
-            Storyboard.SetTarget(bdranim, border);
+            Storyboard.SetTarget(bdranim, indicator);
             Storyboard.SetTargetProperty(bdranim, "(UIElement.RenderTransform).(TranslateTransform.Y)");
             sb.Children.Add(xanim);
             sb.Children.Add(yanim);
             sb.Children.Add(bdranim);
             sb.Begin();
             // メッセージを更新
-            ((TextBlock)((StackPanel)border.Child).Children[0]).Text = (!ignoreInertia && tr.Y > threshold) ? "\uE149" : "\uE74B";
-            ((TextBlock)((StackPanel)border.Child).Children[1]).Text = (!ignoreInertia && tr.Y > threshold) ? "Release to Refresh" : "Pull to Refresh";
+            indicator.EndRefresh();
         }
 
         private void FrameworkElement_OnSizeChanged(object sender, SizeChangedEventArgs e)
