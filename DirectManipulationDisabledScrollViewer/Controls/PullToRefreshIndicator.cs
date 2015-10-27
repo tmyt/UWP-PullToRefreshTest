@@ -33,7 +33,7 @@ namespace DirectManipulationDisabledScrollViewer.Controls
 
         private void OnValueChanged(DependencyPropertyChangedEventArgs e)
         {
-            if (IsRefreshing) return;
+            if (IsRefreshing || PART_ProgressValue == null) return;
             var p = (double)e.NewValue;
             var w = PART_ProgressValue.StrokeThickness;
             var n = (PART_ProgressValue.ActualWidth - w) * Math.PI * p / w;
