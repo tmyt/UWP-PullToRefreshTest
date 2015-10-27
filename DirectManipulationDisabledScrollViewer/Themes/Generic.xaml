@@ -29,6 +29,9 @@
                                 </VisualState>
                                 <VisualState x:Name="Refreshing">
                                     <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_Message" Storyboard.TargetProperty="Text">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="Refreshing..." />
+                                        </ObjectAnimationUsingKeyFrames>
                                         <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_Progress" Storyboard.TargetProperty="Opacity">
                                             <DiscreteDoubleKeyFrame KeyTime="0" Value="0"/>
                                         </DoubleAnimationUsingKeyFrames>
