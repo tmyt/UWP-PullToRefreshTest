@@ -129,15 +129,6 @@
                                         <TranslateTransform Y="-50" />
                                     </controls:PullToRefreshIndicator.RenderTransform>
                                 </controls:PullToRefreshIndicator>
-                                <!--<Border x:Name="RefreshBorder" Height="50" VerticalAlignment="Top">
-                                    <Border.RenderTransform>
-                                        <TranslateTransform Y="-50"></TranslateTransform>
-                                    </Border.RenderTransform>
-                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock FontFamily="{ThemeResource SymbolThemeFontFamily}" Text="&#xE74B;" Margin="5"/>
-                                        <TextBlock Text="Pull to Refresh" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>-->
                                 <ScrollContentPresenter x:Name="ScrollContentPresenter" Grid.ColumnSpan="2" ContentTemplate="{TemplateBinding ContentTemplate}" Margin="{TemplateBinding Padding}" Grid.RowSpan="2" 
                                                         ManipulationMode="TranslateRailsX,TranslateRailsY,TranslateX,TranslateY,TranslateInertia"
                                                         ManipulationDelta="ScrollViewer_OnManipulationDelta" 
